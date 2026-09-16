@@ -1,0 +1,64 @@
+/* Categoria.html */
+
+body { font-family: Arial, Helvetica, sans-serif; 
+    max-width: 720px; 
+    margin: 40px auto; 
+    padding: 0 20px;
+     color: #222; }
+
+    h1 { font-size: 22px; }
+
+    form { background: #f4f6f8;
+         padding: 16px;
+          border-radius: 8px;
+           margin-bottom: 24px; }
+
+    label { display: block;
+         margin-top: 10px;
+          font-weight: bold;
+           font-size: 14px; }
+
+    input, textarea { width: 100%;
+         padding: 8px;
+          margin-top: 4px;
+           border: 1px solid #ccc;
+            border-radius: 4px;
+             box-sizing: border-box; }
+
+    button { margin-top: 14px;
+         padding: 8px 16px;
+          border: none;
+           border-radius: 4px;
+            cursor: pointer; }
+
+    button[type="submit"] { background: #1e5f8c;
+         color: #fff; }
+
+    #btn-cancelar { background: #ccc;
+         margin-left: 8px; }
+
+    table { width: 100%;
+         border-collapse: collapse; }
+
+    th, td { border: 1px solid #ddd;
+         padding: 8px;
+          text-align: left;
+           font-size: 14px; }
+
+    th { background: #eef3f7; }
+
+    .acoes button { margin-top: 0;
+         margin-right: 4px;
+          font-size: 12px; padding: 4px 8px; }
+
+    .btn-editar { background: #f0ad4e; }
+
+    .btn-excluir { background: #d9534f;
+         color: #fff; }
+
+    #mensagem { font-size: 14px;
+         margin-bottom: 12px; }
+
+    #mensagem.erro { color: #c0392b; }
+
+    #mensagem.sucesso { color: #2e7d32; }
