@@ -5,7 +5,7 @@
  */
 
 $host    = 'localhost';
-$dbname  = 'sistema_chamados_hospital';
+$dbname  = 'gerenciamentoHospitalar';
 $usuario = 'root';   // ajuste se necessário
 $senha   = '';       // ajuste se necessário
 
