@@ -8,7 +8,7 @@ $host    = 'localhost';
 $dbname  = 'gerenciamentoHospitalar';
 $usuario = 'root';   // ajuste se necessário
 $senha   = '';       // ajuste se necessário
-
+ 
 try {
     $conexao = new PDO(
         "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
