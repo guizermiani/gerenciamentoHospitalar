@@ -92,7 +92,7 @@ class ChamadoModel
         ]);
         return $stmt->rowCount() > 0;
     }
-
+    
     public function excluir(int $id): bool
     {
         $sql = "DELETE FROM chamado WHERE id_chamado = :id";
