@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Categorias de Chamado</title>
+<link rel = "stylesheet" href="../css/style.css">
+</head>
+<body>
+    <h1>Categorias de Chamado</h1>
+    <p id="mensagem"></p>
+
+    <form id="form-categoria">
+        <input type="hidden" id="id_categoria">
+
+        <label for="nome_categoria">Nome</label>
+        <input type="text" id="nome_categoria" required maxlength="100">
+
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" rows="2"></textarea>
+
+        <button type="submit" id="btn-salvar">Salvar</button>
+        <button type="button" id="btn-cancelar" style="display:none">Cancelar edição</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr><th>Nome</th><th>Descrição</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="corpo-tabela"></tbody>
+    </table>
+
+<script>
+// URL relativa: como views/ e api/ estão na mesma raiz do projeto,
+// isso funciona tanto em localhost quanto quando subir pra um servidor de verdade.
+const API_URL = '../api/categorias.php';
+
+const form          = document.getElementById('form-categoria');
+const campoId       = document.getElementById('id_categoria');
+const campoNome     = document.getElementById('nome_categoria');
+const campoDescricao = document.getElementById('descricao');
+const btnCancelar   = document.getElementById('btn-cancelar');
+const corpoTabela   = document.getElementById('corpo-tabela');
+const mensagem      = document.getElementById('mensagem');
+
+function mostrarMensagem(texto, tipo) {
+    mensagem.textContent = texto;
+    mensagem.className = tipo; // 'sucesso' ou 'erro'
+}
+
+// Busca todas as categorias na API e desenha a tabela
+async function carregarCategorias() {
+    const resposta = await fetch(API_URL);
+    const resultado = await resposta.json();
+
+    corpoTabela.innerHTML = '';
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao carregar categorias.', 'erro');
+        return;
+    }
+
+    resultado.dados.forEach(categoria => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td>${categoria.nome_categoria}</td>
+            <td>${categoria.descricao ?? ''}</td>
+            <td class="acoes">
+                <button class="btn-editar" data-id="${categoria.id_categoria}">Editar</button>
+                <button class="btn-excluir" data-id="${categoria.id_categoria}">Excluir</button>
+            </td>
+        `;
+        corpoTabela.appendChild(linha);
+    });
+}
+
+// Envia o formulário: cria (POST) se não tem id, atualiza (PUT) se tem
+form.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const id = campoId.value;
+    const corpo = JSON.stringify({
+        nome_categoria: campoNome.value,
+        descricao: campoDescricao.value,
+    });
+
+    const url = id ? `${API_URL}?id=${id}` : API_URL;
+    const metodo = id ? 'PUT' : 'POST';
+
+    const resposta = await fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: corpo,
+    });
+    const resultado = await resposta.json();
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao salvar categoria.', 'erro');
+        return;
+    }
+
+    mostrarMensagem(id ? 'Categoria atualizada!' : 'Categoria criada!', 'sucesso');
+    limparFormulario();
+    carregarCategorias();
+});
+
+// Clique em "Editar" ou "Excluir" (delegado, pois as linhas são criadas dinamicamente)
+corpoTabela.addEventListener('click', async (evento) => {
+    const id = evento.target.dataset.id;
+    if (!id) return;
+
+    if (evento.target.classList.contains('btn-excluir')) {
+        if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+
+        const resposta = await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+        const resultado = await resposta.json();
+
+        if (!resultado.sucesso) {
+            mostrarMensagem(resultado.erro ?? 'Erro ao excluir categoria.', 'erro');
+            return;
+        }
+        mostrarMensagem('Categoria excluída.', 'sucesso');
+        carregarCategorias();
+    }
+
+    if (evento.target.classList.contains('btn-editar')) {
+        const resposta = await fetch(`${API_URL}?id=${id}`);
+        const resultado = await resposta.json();
+        if (!resultado.sucesso) return;
+
+        campoId.value = resultado.dados.id_categoria;
+        campoNome.value = resultado.dados.nome_categoria;
+        campoDescricao.value = resultado.dados.descricao ?? '';
+        btnCancelar.style.display = 'inline-block';
+    }
+});
+
+btnCancelar.addEventListener('click', limparFormulario);
+
+function limparFormulario() {
+    form.reset();
+    campoId.value = '';
+    btnCancelar.style.display = 'none';
+}
+
+carregarCategorias();
+</script>
+</body>
+</html>
