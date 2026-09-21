@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Login - Sistema de Chamados</title>
+<link rel = "stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Chamados - Hospital</h1>
+        <p id="mensagem"></p>
+        <form id="form-login">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" required>
+
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" required>
+
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+
+<script>
+document.getElementById('form-login').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const resposta = await fetch('../api/auth.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: document.getElementById('email').value,
+            senha: document.getElementById('senha').value,
+        }),
+    });
+    const resultado = await resposta.json();
+
+    if (!resultado.sucesso) {
+        document.getElementById('mensagem').textContent = resultado.erro;
+        return;
+    }
+
+    window.location.href = 'chamados.html';
+});
+</script>
+</body>
+</html>
