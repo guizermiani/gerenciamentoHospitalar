@@ -23,7 +23,7 @@ class ChamadoController
     {
         return [
             'sucesso' => true,
-            'dados'   => $this->model->listar(),
+            'dados'   => $this->model->Listar(),,
         ];
     }
 
