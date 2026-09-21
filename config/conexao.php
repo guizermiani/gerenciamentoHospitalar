@@ -1,13 +1,8 @@
 <?php
-/**
- * Conexão com o banco de dados (MariaDB) usando PDO.
- * Ajuste $usuario e $senha conforme sua configuração local do DBeaver/MariaDB.
- */
-
-$host    = 'localhost';
-$dbname  = 'gerenciamentoHospitalar';
-$usuario = 'root';   // ajuste se necessário
-$senha   = '';       // ajuste se necessário
+$host = 'localhost';
+$dbname = 'gerenciamentoHospitalar';
+$usuario = 'root';
+$senha = '';
 
 try {
     $conexao = new PDO(

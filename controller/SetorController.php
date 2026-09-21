@@ -1,13 +1,13 @@
 <?php
-require_once __DIR__ . '/../model/CategoriaModel.php';
+require_once __DIR__ . '/../model/SetorModel.php';
 
-class CategoriaController
+class SetorController
 {
-    private CategoriaModel $model;
+    private SetorModel $model;
 
     public function __construct(PDO $conexao)
     {
-        $this->model = new CategoriaModel($conexao);
+        $this->model = new SetorModel($conexao);
     }
 
     public function listar(): array
@@ -20,31 +20,31 @@ class CategoriaController
 
     public function buscar(int $id): array
     {
-        $categoria = $this->model->buscarPorId($id);
+        $setor = $this->model->buscarPorId($id);
 
-        if ($categoria === null) {
+        if ($setor === null) {
             return [
                 'sucesso' => false,
-                'erro'    => 'Categoria não encontrada.',
+                'erro'    => 'Setor não encontrado.',
                 'status'  => 404,
             ];
         }
 
         return [
             'sucesso' => true,
-            'dados'   => $categoria,
+            'dados'   => $setor,
         ];
     }
 
     public function criar(array $dados): array
     {
-        $nome = trim($dados['nome_categoria'] ?? '');
+        $nome = trim($dados['nome_setor'] ?? '');
         $descricao = isset($dados['descricao']) ? trim($dados['descricao']) : null;
 
         if ($nome === '') {
             return [
                 'sucesso' => false,
-                'erro'    => 'O campo nome_categoria é obrigatório.',
+                'erro'    => 'O campo nome_setor é obrigatório.',
                 'status'  => 400,
             ];
         }
@@ -64,18 +64,18 @@ class CategoriaController
         if ($existente === null) {
             return [
                 'sucesso' => false,
-                'erro'    => 'Categoria não encontrada.',
+                'erro'    => 'Setor não encontrado.',
                 'status'  => 404,
             ];
         }
 
-        $nome = trim($dados['nome_categoria'] ?? '');
+        $nome = trim($dados['nome_setor'] ?? '');
         $descricao = isset($dados['descricao']) ? trim($dados['descricao']) : null;
 
         if ($nome === '') {
             return [
                 'sucesso' => false,
-                'erro'    => 'O campo nome_categoria é obrigatório.',
+                'erro'    => 'O campo nome_setor é obrigatório.',
                 'status'  => 400,
             ];
         }
@@ -94,7 +94,7 @@ class CategoriaController
         if ($existente === null) {
             return [
                 'sucesso' => false,
-                'erro'    => 'Categoria não encontrada.',
+                'erro'    => 'Setor não encontrado.',
                 'status'  => 404,
             ];
         }
@@ -103,7 +103,7 @@ class CategoriaController
 
         return [
             'sucesso'  => true,
-            'mensagem' => 'Categoria excluída com sucesso.',
+            'mensagem' => 'Setor excluído com sucesso.',
         ];
     }
 }

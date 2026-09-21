@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Chamados Hospitalares</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body style="background:var(--surface-raised); padding:0; margin:0;">
+
+<div class="page-body">
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <div class="grid-stats" id="kpi-section">
+        <div class="stat-card">
+            <span class="title">Total de Chamados</span>
+            <span class="value" id="stat-total">—</span>
+            <span class="info">Todos os registros</span>
+        </div>
+        <div class="stat-card stat-crit">
+            <span class="title">Abertos</span>
+            <span class="value" id="stat-abertos">—</span>
+            <span class="info">Aguardando atendimento</span>
+        </div>
+        <div class="stat-card stat-warn">
+            <span class="title">Em Andamento</span>
+            <span class="value" id="stat-andamento">—</span>
+            <span class="info">Em suporte técnico</span>
+        </div>
+        <div class="stat-card stat-ok">
+            <span class="title">Resolvidos</span>
+            <span class="value" id="stat-resolvidos">—</span>
+            <span class="info">Concluídos com êxito</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title" id="titulo-form">Registrar Novo Chamado</span>
+        </div>
+        <div class="card-body">
+            <form id="form-chamado">
+                <input type="hidden" id="id_chamado">
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="titulo">Título do Chamado *</label>
+                        <input type="text" id="titulo" required maxlength="150" placeholder="Descreva o problema de forma objetiva">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="descricao">Descrição Detalhada *</label>
+                        <textarea id="descricao" rows="3" required placeholder="Forneça detalhes adicionais sobre o chamado..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_setor">Setor *</label>
+                        <select id="id_setor" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_categoria">Categoria *</label>
+                        <select id="id_categoria" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_prioridade">Prioridade *</label>
+                        <select id="id_prioridade" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_paciente">Paciente Relacionado</label>
+                        <select id="id_paciente"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_usuario_abertura">Aberto Por *</label>
+                        <select id="id_usuario_abertura" required></select>
+                    </div>
+
+                    <div class="form-group" id="group-responsavel" style="display:none;">
+                        <label for="id_usuario_responsavel">Técnico Responsável</label>
+                        <select id="id_usuario_responsavel"></select>
+                    </div>
+
+                    <div class="form-group" id="group-status" style="display:none;">
+                        <label for="id_status">Status</label>
+                        <select id="id_status"></select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="btn-salvar">Registrar Chamado</button>
+                    <button type="button" class="btn btn-secondary" id="btn-cancelar" style="display:none">Cancelar Edição</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <div class="table-section-header">
+            <span class="table-section-title">Chamados Registrados</span>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>Título</th>
+                        <th>Setor</th>
+                        <th>Categoria</th>
+                        <th>Prioridade</th>
+                        <th>Status</th>
+                        <th>Paciente</th>
+                        <th>Data/Hora</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-tabela"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal-backdrop" id="modal-historico">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modal-titulo">Histórico do Chamado</h3>
+            <button class="modal-close" onclick="fecharModal()">&#x2715;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="novo-comentario">Nova Observação</label>
+                <textarea id="novo-comentario" rows="2" placeholder="Registre uma atualização, ação tomada ou observação técnica..."></textarea>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label for="usuario-comentario">Responsável pelo Comentário</label>
+                <select id="usuario-comentario"></select>
+            </div>
+            <div style="margin-top:10px;">
+                <button class="btn btn-primary btn-sm" onclick="salvarHistorico()">Adicionar Observação</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="table-section-title" style="margin-bottom:8px;">Histórico de Observações</div>
+            <div class="history-list" id="lista-historico">
+                <p class="text-muted">Nenhum histórico registrado.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_CHAMADOS = '../api/chamados.php';
+const API_SETORES = '../api/setores.php';
+const API_CATEGORIAS = '../api/categorias.php';
+const API_PRIORIDADES = '../api/prioridades.php';
+const API_STATUS = '../api/status.php';
+const API_USUARIOS = '../api/usuarios.php';
+const API_PACIENTES = '../api/pacientes.php';
+const API_HISTORICO = '../api/historico.php';
+
+let chamadoAtualId = null;
+
+const form = document.getElementById('form-chamado');
+const campoId = document.getElementById('id_chamado');
+const campoTitulo = document.getElementById('titulo');
+const campoDescricao = document.getElementById('descricao');
+const selectSetor = document.getElementById('id_setor');
+const selectCategoria = document.getElementById('id_categoria');
+const selectPrioridade = document.getElementById('id_prioridade');
+const selectPaciente = document.getElementById('id_paciente');
+const selectAbertura = document.getElementById('id_usuario_abertura');
+const selectResponsavel = document.getElementById('id_usuario_responsavel');
+const selectStatus = document.getElementById('id_status');
+const groupResponsavel = document.getElementById('group-responsavel');
+const groupStatus = document.getElementById('group-status');
+const btnCancelar = document.getElementById('btn-cancelar');
+const corpoTabela = document.getElementById('corpo-tabela');
+const mensagem = document.getElementById('mensagem');
+const tituloForm = document.getElementById('titulo-form');
+
+function mostrarMensagem(texto, tipo) {
+    mensagem.textContent = texto;
+    mensagem.className = 'mensagem ' + tipo;
+    clearTimeout(mensagem._timer);
+    mensagem._timer = setTimeout(() => { mensagem.className = 'mensagem'; }, 5000);
+}
+
+function formatarData(dt) {
+    const d = new Date(dt);
+    return String(d.getDate()).padStart(2,'0') + '/' +
+           String(d.getMonth()+1).padStart(2,'0') + '/' +
+           d.getFullYear() + ' ' +
+           String(d.getHours()).padStart(2,'0') + ':' +
+           String(d.getMinutes()).padStart(2,'0');
+}
+
+async function carregarSelects() {
+    try {
+        const [resSet, resCat, resPrio, resStat, resUsu, resPac] = await Promise.all([
+            fetch(API_SETORES).then(r => r.json()),
+            fetch(API_CATEGORIAS).then(r => r.json()),
+            fetch(API_PRIORIDADES).then(r => r.json()),
+            fetch(API_STATUS).then(r => r.json()),
+            fetch(API_USUARIOS).then(r => r.json()),
+            fetch(API_PACIENTES).then(r => r.json()),
+        ]);
+        if (resSet.sucesso) selectSetor.innerHTML = '<option value="">Selecione o setor</option>' + resSet.dados.map(s => `<option value="${s.id_setor}">${s.nome_setor}</option>`).join('');
+        if (resCat.sucesso) selectCategoria.innerHTML = '<option value="">Selecione a categoria</option>' + resCat.dados.map(c => `<option value="${c.id_categoria}">${c.nome_categoria}</option>`).join('');
+        if (resPrio.sucesso) selectPrioridade.innerHTML = '<option value="">Selecione a prioridade</option>' + resPrio.dados.map(p => `<option value="${p.id_prioridade}">${p.descricao}</option>`).join('');
+        if (resStat.sucesso) selectStatus.innerHTML = resStat.dados.map(st => `<option value="${st.id_status}">${st.descricao}</option>`).join('');
+        if (resUsu.sucesso) {
+            const opts = '<option value="">Selecione o usuário</option>' + resUsu.dados.map(u => `<option value="${u.id_usuario}">${u.nome} (${u.tipo_usuario})</option>`).join('');
+            selectAbertura.innerHTML = opts;
+            selectResponsavel.innerHTML = '<option value="">Nenhum responsável</option>' + opts;
+            document.getElementById('usuario-comentario').innerHTML = opts;
+        }
+        if (resPac.sucesso) selectPaciente.innerHTML = '<option value="">Nenhum paciente vinculado</option>' + resPac.dados.map(p => `<option value="${p.id_paciente}">${p.nome}${p.cpf ? ' — ' + p.cpf : ''}</option>`).join('');
+    } catch (e) {
+        mostrarMensagem('Erro ao carregar opções dos formulários.', 'erro');
+    }
+}
+
+function badgePrioridade(p) {
+    const m = {'baixa':'badge-baixa','media':'badge-media','alta':'badge-alta','urgente':'badge-urgente'};
+    const cls = m[(p||'').toLowerCase()] || 'badge-baixa';
+    return `<span class="badge ${cls}">${p}</span>`;
+}
+
+function badgeStatus(s) {
+    const m = {'aberto':'badge-aberto','em andamento':'badge-em_andamento','resolvido':'badge-resolvido','cancelado':'badge-cancelado'};
+    const cls = m[(s||'').toLowerCase()] || '';
+    return `<span class="badge ${cls}">${s}</span>`;
+}
+
+async function carregarChamados() {
+    try {
+        const res = await fetch(API_CHAMADOS);
+        const resultado = await res.json();
+        corpoTabela.innerHTML = '';
+        if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao carregar chamados.', 'erro'); return; }
+        const dados = resultado.dados;
+        document.getElementById('stat-total').textContent = dados.length;
+        document.getElementById('stat-abertos').textContent = dados.filter(d => d.id_status == 1).length;
+        document.getElementById('stat-andamento').textContent = dados.filter(d => d.id_status == 2).length;
+        document.getElementById('stat-resolvidos').textContent = dados.filter(d => d.id_status == 3).length;
+        if (dados.length === 0) {
+            corpoTabela.innerHTML = '<tr><td colspan="9" class="text-muted" style="text-align:center; padding:24px;">Nenhum chamado registrado.</td></tr>';
+            return;
+        }
+        dados.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="tag-id">#${String(c.id_chamado).padStart(4,'0')}</span></td>
+                <td><strong>${c.titulo}</strong></td>
+                <td>${c.setor}</td>
+                <td>${c.categoria}</td>
+                <td>${badgePrioridade(c.prioridade)}</td>
+                <td>${badgeStatus(c.status)}</td>
+                <td>${c.paciente || '<span class="text-muted">—</span>'}</td>
+                <td class="text-muted" style="font-size:12px;">${formatarData(c.data_abertura)}</td>
+                <td>
+                    <div class="td-actions">
+                        <button class="btn btn-secondary btn-sm btn-historico" data-id="${c.id_chamado}">Histórico</button>
+                        <button class="btn btn-edit btn-sm btn-editar" data-id="${c.id_chamado}">Editar</button>
+                        <button class="btn btn-danger btn-sm btn-excluir" data-id="${c.id_chamado}">Excluir</button>
+                    </div>
+                </td>`;
+            corpoTabela.appendChild(tr);
+        });
+    } catch (e) {
+        mostrarMensagem('Erro de conexão ao carregar chamados.', 'erro');
+    }
+}
+
+form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const id = campoId.value;
+    const payload = {
+        titulo: campoTitulo.value,
+        descricao: campoDescricao.value,
+        id_setor: selectSetor.value,
+        id_categoria: selectCategoria.value,
+        id_prioridade: selectPrioridade.value,
+        id_usuario_abertura: selectAbertura.value,
+        id_paciente: selectPaciente.value || null,
+    };
+    if (id) {
+        payload.id_status = selectStatus.value;
+        payload.id_usuario_responsavel = selectResponsavel.value || null;
+    }
+    try {
+        const res = await fetch(id ? `${API_CHAMADOS}?id=${id}` : API_CHAMADOS, {
+            method: id ? 'PUT' : 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const resultado = await res.json();
+        if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao salvar chamado.', 'erro'); return; }
+        mostrarMensagem(id ? 'Chamado atualizado com sucesso.' : 'Chamado registrado com sucesso.', 'sucesso');
+        limparFormulario();
+        carregarChamados();
+    } catch (e) {
+        mostrarMensagem('Erro de comunicação com o servidor.', 'erro');
+    }
+});
+
+corpoTabela.addEventListener('click', async (ev) => {
+    const target = ev.target.closest('button');
+    if (!target) return;
+    const id = target.dataset.id;
+
+    if (target.classList.contains('btn-excluir')) {
+        if (!confirm(`Confirma exclusão do chamado #${String(id).padStart(4,'0')}? Esta ação não pode ser desfeita.`)) return;
+        try {
+            const res = await fetch(`${API_CHAMADOS}?id=${id}`, {method:'DELETE'});
+            const resultado = await res.json();
+            if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao excluir.', 'erro'); return; }
+            mostrarMensagem('Chamado excluído.', 'sucesso');
+            carregarChamados();
+        } catch (e) { mostrarMensagem('Erro ao excluir chamado.', 'erro'); }
+    }
+
+    if (target.classList.contains('btn-editar')) {
+        try {
+            const res = await fetch(`${API_CHAMADOS}?id=${id}`);
+            const resultado = await res.json();
+            if (!resultado.sucesso) return;
+            const d = resultado.dados;
+            campoId.value = d.id_chamado;
+            campoTitulo.value = d.titulo;
+            campoDescricao.value = d.descricao;
+            selectSetor.value = d.id_setor;
+            selectCategoria.value = d.id_categoria;
+            selectPrioridade.value = d.id_prioridade;
+            selectPaciente.value = d.id_paciente || '';
+            selectAbertura.value = d.id_usuario_abertura;
+            selectResponsavel.value = d.id_usuario_responsavel || '';
+            selectStatus.value = d.id_status;
+            groupResponsavel.style.display = 'flex';
+            groupStatus.style.display = 'flex';
+            tituloForm.textContent = `Editar Chamado #${String(d.id_chamado).padStart(4,'0')}`;
+            document.getElementById('btn-salvar').textContent = 'Salvar Alterações';
+            btnCancelar.style.display = '';
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        } catch (e) { mostrarMensagem('Erro ao carregar chamado.', 'erro'); }
+    }
+
+    if (target.classList.contains('btn-historico')) {
+        abrirModalHistorico(id);
+    }
+});
+
+async function abrirModalHistorico(id) {
+    chamadoAtualId = id;
+    document.getElementById('modal-titulo').textContent = `Histórico — Chamado #${String(id).padStart(4,'0')}`;
+    document.getElementById('modal-historico').classList.add('active');
+    await carregarListaHistorico(id);
+}
+
+function fecharModal() {
+    document.getElementById('modal-historico').classList.remove('active');
+    chamadoAtualId = null;
+}
+
+async function carregarListaHistorico(id) {
+    const lista = document.getElementById('lista-historico');
+    lista.innerHTML = '<p class="text-muted">Carregando...</p>';
+    try {
+        const res = await fetch(`${API_HISTORICO}?id_chamado=${id}`);
+        const resultado = await res.json();
+        lista.innerHTML = '';
+        if (!resultado.sucesso || resultado.dados.length === 0) {
+            lista.innerHTML = '<p class="text-muted">Nenhuma observação registrada ainda.</p>';
+            return;
+        }
+        resultado.dados.forEach(h => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<div class="meta"><strong>${h.usuario}</strong><span>${formatarData(h.data_hora)}</span></div><div class="text">${h.comentario}</div>`;
+            lista.appendChild(div);
+        });
+    } catch (e) {
+        lista.innerHTML = '<p class="text-muted">Erro ao carregar histórico.</p>';
+    }
+}
+
+async function salvarHistorico() {
+    const comentario = document.getElementById('novo-comentario').value.trim();
+    const idUsuario = document.getElementById('usuario-comentario').value;
+    if (!comentario || !idUsuario) { alert('Preencha o comentário e selecione o usuário responsável.'); return; }
+    try {
+        const res = await fetch(API_HISTORICO, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id_chamado: chamadoAtualId, id_usuario: idUsuario, comentario})
+        });
+        const resultado = await res.json();
+        if (resultado.sucesso) {
+            document.getElementById('novo-comentario').value = '';
+            carregarListaHistorico(chamadoAtualId);
+        } else {
+            alert(resultado.erro || 'Erro ao salvar observação.');
+        }
+    } catch (e) { alert('Erro ao comunicar com o servidor.'); }
+}
+
+btnCancelar.addEventListener('click', limparFormulario);
+
+function limparFormulario() {
+    form.reset();
+    campoId.value = '';
+    groupResponsavel.style.display = 'none';
+    groupStatus.style.display = 'none';
+    tituloForm.textContent = 'Registrar Novo Chamado';
+    document.getElementById('btn-salvar').textContent = 'Registrar Chamado';
+    btnCancelar.style.display = 'none';
+}
+
+(async () => {
+    await carregarSelects();
+    await carregarChamados();
+})();
+</script>
+</body>
+</html>

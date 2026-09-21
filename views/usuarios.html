@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuários</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body style="background:var(--surface-raised); padding:0; margin:0;">
+
+<div class="page-body">
+
+    <div id="mensagem" class="mensagem"></div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title" id="titulo-form">Cadastrar Usuário</span>
+        </div>
+        <div class="card-body">
+            <form id="form-usuario">
+                <input type="hidden" id="id_usuario">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo *</label>
+                        <input type="text" id="nome" required maxlength="100" placeholder="Nome do usuário">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail *</label>
+                        <input type="email" id="email" required maxlength="100" placeholder="usuario@hospital.com.br">
+                    </div>
+                    <div class="form-group">
+                        <label for="senha">Senha <span id="label-senha-opcional" style="display:none; font-weight:400; color:var(--text-muted);">(manter em branco para não alterar)</span></label>
+                        <input type="password" id="senha" placeholder="••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo_usuario">Tipo de Acesso *</label>
+                        <select id="tipo_usuario" required>
+                            <option value="atendente">Atendente</option>
+                            <option value="tecnico">Técnico</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="btn-salvar">Cadastrar Usuário</button>
+                    <button type="button" class="btn btn-secondary" id="btn-cancelar" style="display:none">Cancelar Edição</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <div class="table-section-header">
+            <span class="table-section-title">Usuários Cadastrados</span>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nº</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Tipo de Acesso</th>
+                        <th>Data de Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-tabela"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const API_URL = '../api/usuarios.php';
+const form = document.getElementById('form-usuario');
+const campoId = document.getElementById('id_usuario');
+const campoNome = document.getElementById('nome');
+const campoEmail = document.getElementById('email');
+const campoSenha = document.getElementById('senha');
+const campoTipo = document.getElementById('tipo_usuario');
+const labelSenhaOpcional = document.getElementById('label-senha-opcional');
+const btnCancelar = document.getElementById('btn-cancelar');
+const corpoTabela = document.getElementById('corpo-tabela');
+const mensagem = document.getElementById('mensagem');
+const tituloForm = document.getElementById('titulo-form');
+
+const tipoLabel = { atendente: 'Atendente', tecnico: 'Técnico', admin: 'Administrador' };
+const tipoBadge = { atendente: 'badge-baixa', tecnico: 'badge-media', admin: 'badge-urgente' };
+
+function mostrarMensagem(texto, tipo) {
+    mensagem.textContent = texto;
+    mensagem.className = 'mensagem ' + tipo;
+    clearTimeout(mensagem._t);
+    mensagem._t = setTimeout(() => { mensagem.className = 'mensagem'; }, 5000);
+}
+
+function formatarData(dt) {
+    if (!dt) return '—';
+    const d = new Date(dt);
+    return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+}
+
+async function carregarUsuarios() {
+    try {
+        const res = await fetch(API_URL);
+        const resultado = await res.json();
+        corpoTabela.innerHTML = '';
+        if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao carregar.', 'erro'); return; }
+        if (resultado.dados.length === 0) {
+            corpoTabela.innerHTML = '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px;">Nenhum usuário cadastrado.</td></tr>';
+            return;
+        }
+        resultado.dados.forEach(u => {
+            const tr = document.createElement('tr');
+            const cls = tipoBadge[u.tipo_usuario] || 'badge-baixa';
+            tr.innerHTML = `
+                <td><span class="tag-id">#${String(u.id_usuario).padStart(4,'0')}</span></td>
+                <td><strong>${u.nome}</strong></td>
+                <td>${u.email}</td>
+                <td><span class="badge ${cls}">${tipoLabel[u.tipo_usuario] || u.tipo_usuario}</span></td>
+                <td class="text-muted" style="font-size:12px;">${formatarData(u.data_cadastro)}</td>
+                <td>
+                    <div class="td-actions">
+                        <button class="btn btn-edit btn-sm btn-editar" data-id="${u.id_usuario}">Editar</button>
+                        <button class="btn btn-danger btn-sm btn-excluir" data-id="${u.id_usuario}">Excluir</button>
+                    </div>
+                </td>`;
+            corpoTabela.appendChild(tr);
+        });
+    } catch (e) { mostrarMensagem('Erro de conexão.', 'erro'); }
+}
+
+form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const id = campoId.value;
+    const payload = { nome: campoNome.value, email: campoEmail.value, tipo_usuario: campoTipo.value };
+    if (campoSenha.value) payload.senha = campoSenha.value;
+    try {
+        const res = await fetch(id ? `${API_URL}?id=${id}` : API_URL, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const resultado = await res.json();
+        if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao salvar.', 'erro'); return; }
+        mostrarMensagem(id ? 'Usuário atualizado.' : 'Usuário cadastrado.', 'sucesso');
+        limparFormulario();
+        carregarUsuarios();
+    } catch (e) { mostrarMensagem('Erro de comunicação.', 'erro'); }
+});
+
+corpoTabela.addEventListener('click', async (ev) => {
+    const target = ev.target.closest('button');
+    if (!target) return;
+    const id = target.dataset.id;
+    if (target.classList.contains('btn-excluir')) {
+        if (!confirm('Confirma a exclusão deste usuário?')) return;
+        try {
+            const res = await fetch(`${API_URL}?id=${id}`, {method:'DELETE'});
+            const resultado = await res.json();
+            if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao excluir.', 'erro'); return; }
+            mostrarMensagem('Usuário excluído.', 'sucesso');
+            carregarUsuarios();
+        } catch (e) { mostrarMensagem('Erro ao excluir.', 'erro'); }
+    }
+    if (target.classList.contains('btn-editar')) {
+        try {
+            const res = await fetch(`${API_URL}?id=${id}`);
+            const resultado = await res.json();
+            if (!resultado.sucesso) return;
+            const u = resultado.dados;
+            campoId.value = u.id_usuario;
+            campoNome.value = u.nome;
+            campoEmail.value = u.email;
+            campoTipo.value = u.tipo_usuario;
+            campoSenha.value = '';
+            tituloForm.textContent = `Editar Usuário — ${u.nome}`;
+            labelSenhaOpcional.style.display = 'inline';
+            document.getElementById('btn-salvar').textContent = 'Salvar Alterações';
+            btnCancelar.style.display = '';
+            window.scrollTo({top:0, behavior:'smooth'});
+        } catch (e) { mostrarMensagem('Erro ao carregar usuário.', 'erro'); }
+    }
+});
+
+btnCancelar.addEventListener('click', limparFormulario);
+
+function limparFormulario() {
+    form.reset();
+    campoId.value = '';
+    labelSenhaOpcional.style.display = 'none';
+    tituloForm.textContent = 'Cadastrar Usuário';
+    document.getElementById('btn-salvar').textContent = 'Cadastrar Usuário';
+    btnCancelar.style.display = 'none';
+}
+
+carregarUsuarios();
+</script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <?php
-class CategoriaModel
+class SetorModel
 {
     private PDO $conexao;
 
@@ -10,18 +10,18 @@ class CategoriaModel
 
     public function listar(): array
     {
-        $sql = "SELECT id_categoria, nome_categoria, descricao
-                FROM categoria_chamado
-                ORDER BY nome_categoria";
+        $sql = "SELECT id_setor, nome_setor, descricao
+                FROM setor
+                ORDER BY nome_setor";
         $stmt = $this->conexao->query($sql);
         return $stmt->fetchAll();
     }
 
     public function buscarPorId(int $id): ?array
     {
-        $sql = "SELECT id_categoria, nome_categoria, descricao
-                FROM categoria_chamado
-                WHERE id_categoria = :id";
+        $sql = "SELECT id_setor, nome_setor, descricao
+                FROM setor
+                WHERE id_setor = :id";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute(['id' => $id]);
         $resultado = $stmt->fetch();
@@ -30,7 +30,7 @@ class CategoriaModel
 
     public function criar(string $nome, ?string $descricao): int
     {
-        $sql = "INSERT INTO categoria_chamado (nome_categoria, descricao)
+        $sql = "INSERT INTO setor (nome_setor, descricao)
                 VALUES (:nome, :descricao)";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute([
@@ -42,9 +42,9 @@ class CategoriaModel
 
     public function atualizar(int $id, string $nome, ?string $descricao): bool
     {
-        $sql = "UPDATE categoria_chamado
-                SET nome_categoria = :nome, descricao = :descricao
-                WHERE id_categoria = :id";
+        $sql = "UPDATE setor
+                SET nome_setor = :nome, descricao = :descricao
+                WHERE id_setor = :id";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute([
             'id' => $id,
@@ -56,7 +56,7 @@ class CategoriaModel
 
     public function excluir(int $id): bool
     {
-        $sql = "DELETE FROM categoria_chamado WHERE id_categoria = :id";
+        $sql = "DELETE FROM setor WHERE id_setor = :id";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() > 0;

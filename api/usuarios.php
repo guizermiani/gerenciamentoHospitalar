@@ -2,9 +2,9 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/conexao.php';
-require_once __DIR__ . '/../controller/CategoriaController.php';
+require_once __DIR__ . '/../controller/UsuarioController.php';
 
-$controller = new CategoriaController($conexao);
+$controller = new UsuarioController($conexao);
 
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
@@ -24,7 +24,7 @@ try {
 
         case 'PUT':
             if ($id === null) {
-                $resultado = ['sucesso' => false, 'erro' => 'Informe o ID da categoria.', 'status' => 400];
+                $resultado = ['sucesso' => false, 'erro' => 'Informe o ID do usuário.', 'status' => 400];
                 break;
             }
             $dados = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -33,7 +33,7 @@ try {
 
         case 'DELETE':
             if ($id === null) {
-                $resultado = ['sucesso' => false, 'erro' => 'Informe o ID da categoria.', 'status' => 400];
+                $resultado = ['sucesso' => false, 'erro' => 'Informe o ID do usuário.', 'status' => 400];
                 break;
             }
             $resultado = $controller->excluir($id);

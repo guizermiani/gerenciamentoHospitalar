@@ -1,13 +1,13 @@
 <?php
-require_once __DIR__ . '/../model/CategoriaModel.php';
+require_once __DIR__ . '/../model/PacienteModel.php';
 
-class CategoriaController
+class PacienteController
 {
-    private CategoriaModel $model;
+    private PacienteModel $model;
 
     public function __construct(PDO $conexao)
     {
-        $this->model = new CategoriaModel($conexao);
+        $this->model = new PacienteModel($conexao);
     }
 
     public function listar(): array
@@ -20,36 +20,45 @@ class CategoriaController
 
     public function buscar(int $id): array
     {
-        $categoria = $this->model->buscarPorId($id);
-
-        if ($categoria === null) {
+        $paciente = $this->model->buscarPorId($id);
+        if ($paciente === null) {
             return [
                 'sucesso' => false,
-                'erro'    => 'Categoria não encontrada.',
+                'erro'    => 'Paciente não encontrado.',
                 'status'  => 404,
             ];
         }
-
         return [
             'sucesso' => true,
-            'dados'   => $categoria,
+            'dados'   => $paciente,
         ];
     }
 
     public function criar(array $dados): array
     {
-        $nome = trim($dados['nome_categoria'] ?? '');
-        $descricao = isset($dados['descricao']) ? trim($dados['descricao']) : null;
+        $nome = trim($dados['nome'] ?? '');
+        $cpf = trim($dados['cpf'] ?? '');
 
         if ($nome === '') {
             return [
                 'sucesso' => false,
-                'erro'    => 'O campo nome_categoria é obrigatório.',
+                'erro'    => 'O nome do paciente é obrigatório.',
                 'status'  => 400,
             ];
         }
 
-        $id = $this->model->criar($nome, $descricao);
+        if ($cpf !== '') {
+            $existente = $this->model->buscarPorCpf($cpf);
+            if ($existente !== null) {
+                return [
+                    'sucesso' => false,
+                    'erro'    => 'Este CPF já está cadastrado.',
+                    'status'  => 400,
+                ];
+            }
+        }
+
+        $id = $this->model->criar($dados);
 
         return [
             'sucesso' => true,
@@ -64,23 +73,34 @@ class CategoriaController
         if ($existente === null) {
             return [
                 'sucesso' => false,
-                'erro'    => 'Categoria não encontrada.',
+                'erro'    => 'Paciente não encontrado.',
                 'status'  => 404,
             ];
         }
 
-        $nome = trim($dados['nome_categoria'] ?? '');
-        $descricao = isset($dados['descricao']) ? trim($dados['descricao']) : null;
+        $nome = trim($dados['nome'] ?? '');
+        $cpf = trim($dados['cpf'] ?? '');
 
         if ($nome === '') {
             return [
                 'sucesso' => false,
-                'erro'    => 'O campo nome_categoria é obrigatório.',
+                'erro'    => 'O nome do paciente é obrigatório.',
                 'status'  => 400,
             ];
         }
 
-        $this->model->atualizar($id, $nome, $descricao);
+        if ($cpf !== '') {
+            $pacienteComMesmoCpf = $this->model->buscarPorCpf($cpf);
+            if ($pacienteComMesmoCpf !== null && (int)$pacienteComMesmoCpf['id_paciente'] !== $id) {
+                return [
+                    'sucesso' => false,
+                    'erro'    => 'Este CPF já pertence a outro paciente.',
+                    'status'  => 400,
+                ];
+            }
+        }
+
+        $this->model->atualizar($id, $dados);
 
         return [
             'sucesso' => true,
@@ -94,7 +114,7 @@ class CategoriaController
         if ($existente === null) {
             return [
                 'sucesso' => false,
-                'erro'    => 'Categoria não encontrada.',
+                'erro'    => 'Paciente não encontrado.',
                 'status'  => 404,
             ];
         }
@@ -103,7 +123,7 @@ class CategoriaController
 
         return [
             'sucesso'  => true,
-            'mensagem' => 'Categoria excluída com sucesso.',
+            'mensagem' => 'Paciente excluído com sucesso.',
         ];
     }
 }

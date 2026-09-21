@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gerenciamento Hospitalar — Chamados, Pacientes, Setores e Usuários">
+    <title>GH Sistema Hospitalar</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-name">
+            <div class="sidebar-logo-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                    <rect x="11" y="7" width="2" height="10"/>
+                    <rect x="7" y="11" width="10" height="2"/>
+                </svg>
+            </div>
+            <div>
+                <h2>Hospital System</h2>
+                <p>v2.1 — Módulo Admin</p>
+            </div>
+        </div>
+    </div>
+
+    <p class="nav-section-label">Operações</p>
+    <ul class="nav-list">
+        <li>
+            <a href="#" class="nav-link active" id="nav-chamados" onclick="carregarModulo('chamados', this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Chamados
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link" id="nav-pacientes" onclick="carregarModulo('pacientes', this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                Pacientes
+            </a>
+        </li>
+    </ul>
+
+    <p class="nav-section-label">Administração</p>
+    <ul class="nav-list">
+        <li>
+            <a href="#" class="nav-link" id="nav-usuarios" onclick="carregarModulo('usuarios', this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                Usuários
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link" id="nav-setores" onclick="carregarModulo('setores', this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                Setores
+            </a>
+        </li>
+        <li>
+            <a href="#" class="nav-link" id="nav-categorias" onclick="carregarModulo('categorias', this)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5.5 9h11z"/><circle cx="17.5" cy="17.5" r="4.5"/><rect x="2" y="13" width="9" height="9"/></svg>
+                Categorias
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        GH Sistema — 2026
+    </div>
+</aside>
+
+<main class="main-content">
+    <header class="topbar">
+        <div class="topbar-left">
+            <h1 class="topbar-title" id="titulo-pagina">Gestão de Chamados Hospitalares</h1>
+        </div>
+        <div class="topbar-right">
+            <span class="topbar-clock" id="relogio"></span>
+            <div class="topbar-user">
+                <div class="topbar-avatar">ADM</div>
+                <span>Administrador</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-body" style="padding:0;">
+        <iframe id="iframe-conteudo"
+            src="views/chamados.html"
+            style="width:100%; border:none; min-height:calc(100vh - 52px); background:transparent; display:block;">
+        </iframe>
+    </div>
+</main>
+
+<script>
+    function carregarModulo(modulo, el) {
+        const iframe = document.getElementById('iframe-conteudo');
+        const titulo = document.getElementById('titulo-pagina');
+        const titulos = {
+            chamados: 'Gestão de Chamados Hospitalares',
+            pacientes: 'Cadastro de Pacientes',
+            usuarios: 'Gestão de Usuários e Acessos',
+            setores: 'Setores Hospitalares',
+            categorias: 'Categorias de Chamados'
+        };
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        if (el) el.classList.add('active');
+        titulo.textContent = titulos[modulo] || 'Gerenciamento Hospitalar';
+        iframe.src = 'views/' + modulo + '.html';
+        return false;
+    }
+
+    function atualizarRelogio() {
+        const el = document.getElementById('relogio');
+        if (!el) return;
+        const agora = new Date();
+        const h = String(agora.getHours()).padStart(2, '0');
+        const m = String(agora.getMinutes()).padStart(2, '0');
+        const d = String(agora.getDate()).padStart(2, '0');
+        const mo = String(agora.getMonth() + 1).padStart(2, '0');
+        el.textContent = d + '/' + mo + '/' + agora.getFullYear() + '  ' + h + ':' + m;
+    }
+    atualizarRelogio();
+    setInterval(atualizarRelogio, 30000);
+</script>
+
+</body>
+</html>

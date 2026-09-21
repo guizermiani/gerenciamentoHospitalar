@@ -1,7 +1,4 @@
 <?php
-/**
- * Model de Chamado.
- */
 class ChamadoModel
 {
     private PDO $conexao;
@@ -11,10 +8,6 @@ class ChamadoModel
         $this->conexao = $conexao;
     }
 
-    /**
-     * Campos usados tanto em listar() quanto em buscarPorId(),
-     * pra não repetir o mesmo SELECT gigante duas vezes.
-     */
     private function selectBase(): string
     {
         return "SELECT
@@ -23,17 +16,17 @@ class ChamadoModel
                     c.id_prioridade, p.descricao AS prioridade,
                     c.id_setor, st.nome_setor AS setor,
                     c.id_categoria, cat.nome_categoria AS categoria,
-                    c.id_funcionario_abertura, fa.nome AS aberto_por,
-                    c.id_funcionario_responsavel, fr.nome AS responsavel,
+                    c.id_usuario_abertura, ua.nome AS aberto_por,
+                    c.id_usuario_responsavel, ur.nome AS responsavel,
                     c.id_paciente, pac.nome AS paciente
                 FROM chamado c
-                JOIN status_chamado s      ON s.id_status = c.id_status
-                JOIN prioridade p          ON p.id_prioridade = c.id_prioridade
-                JOIN setor st              ON st.id_setor = c.id_setor
+                JOIN status_chamado s ON s.id_status = c.id_status
+                JOIN prioridade p ON p.id_prioridade = c.id_prioridade
+                JOIN setor st ON st.id_setor = c.id_setor
                 JOIN categoria_chamado cat ON cat.id_categoria = c.id_categoria
-                JOIN funcionario fa        ON fa.id_funcionario = c.id_funcionario_abertura
-                LEFT JOIN funcionario fr   ON fr.id_funcionario = c.id_funcionario_responsavel
-                LEFT JOIN paciente pac     ON pac.id_paciente = c.id_paciente";
+                JOIN usuario ua ON ua.id_usuario = c.id_usuario_abertura
+                LEFT JOIN usuario ur ON ur.id_usuario = c.id_usuario_responsavel
+                LEFT JOIN paciente pac ON pac.id_paciente = c.id_paciente";
     }
 
     public function listar(): array
@@ -48,40 +41,31 @@ class ChamadoModel
         $sql = $this->selectBase() . " WHERE c.id_chamado = :id";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute(['id' => $id]);
-        $resultado = $stmt->fetch();x
+        $resultado = $stmt->fetch();
         return $resultado ?: null;
     }
 
-    /**
-     * Cria um chamado novo. Sempre nasce com id_status = 1 (Aberto)
-     * e sem funcionário responsável definido ainda.
-     */
     public function criar(array $dados): int
     {
         $sql = "INSERT INTO chamado
                     (titulo, descricao, id_setor, id_categoria, id_prioridade,
-                     id_funcionario_abertura, id_paciente, id_status)
+                     id_usuario_abertura, id_paciente, id_status)
                 VALUES
                     (:titulo, :descricao, :id_setor, :id_categoria, :id_prioridade,
-                     :id_funcionario_abertura, :id_paciente, 1)";
+                     :id_usuario_abertura, :id_paciente, 1)";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute([
-            'titulo'                  => $dados['titulo'],
-            'descricao'               => $dados['descricao'],
-            'id_setor'                => $dados['id_setor'],
-            'id_categoria'            => $dados['id_categoria'],
-            'id_prioridade'           => $dados['id_prioridade'],
-            'id_funcionario_abertura' => $dados['id_funcionario_abertura'],
-            'id_paciente'             => $dados['id_paciente'] ?? null,
+            'titulo' => $dados['titulo'],
+            'descricao' => $dados['descricao'],
+            'id_setor' => $dados['id_setor'],
+            'id_categoria' => $dados['id_categoria'],
+            'id_prioridade' => $dados['id_prioridade'],
+            'id_usuario_abertura' => $dados['id_usuario_abertura'],
+            'id_paciente' => !empty($dados['id_paciente']) ? $dados['id_paciente'] : null,
         ]);
         return (int) $this->conexao->lastInsertId();
     }
 
-    /**
-     * Atualiza um chamado existente. Recebe o conjunto de valores já resolvidos
-     * pelo Controller (inclusive data_fechamento, quando aplicável) —
-     * o Model não decide regra nenhuma, só grava o que mandarem.
-     */
     public function atualizar(int $id, array $dados): bool
     {
         $sql = "UPDATE chamado
@@ -90,21 +74,21 @@ class ChamadoModel
                     id_setor = :id_setor,
                     id_categoria = :id_categoria,
                     id_prioridade = :id_prioridade,
-                    id_funcionario_responsavel = :id_funcionario_responsavel,
+                    id_usuario_responsavel = :id_usuario_responsavel,
                     id_status = :id_status,
                     data_fechamento = :data_fechamento
                 WHERE id_chamado = :id";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute([
-            'id'                         => $id,
-            'titulo'                     => $dados['titulo'],
-            'descricao'                  => $dados['descricao'],
-            'id_setor'                   => $dados['id_setor'],
-            'id_categoria'               => $dados['id_categoria'],
-            'id_prioridade'              => $dados['id_prioridade'],
-            'id_funcionario_responsavel' => $dados['id_funcionario_responsavel'],
-            'id_status'                  => $dados['id_status'],
-            'data_fechamento'            => $dados['data_fechamento'],
+            'id' => $id,
+            'titulo' => $dados['titulo'],
+            'descricao' => $dados['descricao'],
+            'id_setor' => $dados['id_setor'],
+            'id_categoria' => $dados['id_categoria'],
+            'id_prioridade' => $dados['id_prioridade'],
+            'id_usuario_responsavel' => !empty($dados['id_usuario_responsavel']) ? $dados['id_usuario_responsavel'] : null,
+            'id_status' => $dados['id_status'],
+            'data_fechamento' => !empty($dados['data_fechamento']) ? $dados['data_fechamento'] : null,
         ]);
         return $stmt->rowCount() > 0;
     }

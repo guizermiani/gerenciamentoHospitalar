@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Categorias</title>
+    <title>Setores</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body style="background:var(--surface-raised); padding:0; margin:0;">
@@ -13,23 +13,23 @@
 
     <div class="card">
         <div class="card-header">
-            <span class="card-title" id="titulo-form">Cadastrar Categoria</span>
+            <span class="card-title" id="titulo-form">Cadastrar Setor</span>
         </div>
         <div class="card-body">
-            <form id="form-categoria">
-                <input type="hidden" id="id_categoria">
+            <form id="form-setor">
+                <input type="hidden" id="id_setor">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="nome_categoria">Nome da Categoria *</label>
-                        <input type="text" id="nome_categoria" required maxlength="100" placeholder="Ex.: Manutenção, TI, Infraestrutura">
+                        <label for="nome_setor">Nome do Setor *</label>
+                        <input type="text" id="nome_setor" required maxlength="100" placeholder="Ex.: UTI, Cardiologia, Radiologia">
                     </div>
                     <div class="form-group full-width">
                         <label for="descricao">Descrição</label>
-                        <textarea id="descricao" rows="2" maxlength="255" placeholder="Descreva o tipo de chamados que essa categoria abrange..."></textarea>
+                        <textarea id="descricao" rows="2" maxlength="255" placeholder="Descreva brevemente o setor e suas responsabilidades..."></textarea>
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="btn-salvar">Cadastrar Categoria</button>
+                    <button type="submit" class="btn btn-primary" id="btn-salvar">Cadastrar Setor</button>
                     <button type="button" class="btn btn-secondary" id="btn-cancelar" style="display:none">Cancelar Edição</button>
                 </div>
             </form>
@@ -38,14 +38,14 @@
 
     <div class="table-section">
         <div class="table-section-header">
-            <span class="table-section-title">Categorias Cadastradas</span>
+            <span class="table-section-title">Setores Cadastrados</span>
         </div>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th>Nº</th>
-                        <th>Categoria</th>
+                        <th>Setor</th>
                         <th>Descrição</th>
                         <th>Ações</th>
                     </tr>
@@ -58,10 +58,10 @@
 </div>
 
 <script>
-const API_URL = '../api/categorias.php';
-const form = document.getElementById('form-categoria');
-const campoId = document.getElementById('id_categoria');
-const campoNome = document.getElementById('nome_categoria');
+const API_URL = '../api/setores.php';
+const form = document.getElementById('form-setor');
+const campoId = document.getElementById('id_setor');
+const campoNome = document.getElementById('nome_setor');
 const campoDescricao = document.getElementById('descricao');
 const btnCancelar = document.getElementById('btn-cancelar');
 const corpoTabela = document.getElementById('corpo-tabela');
@@ -75,26 +75,26 @@ function mostrarMensagem(texto, tipo) {
     mensagem._t = setTimeout(() => { mensagem.className = 'mensagem'; }, 5000);
 }
 
-async function carregarCategorias() {
+async function carregarSetores() {
     try {
         const res = await fetch(API_URL);
         const resultado = await res.json();
         corpoTabela.innerHTML = '';
         if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao carregar.', 'erro'); return; }
         if (resultado.dados.length === 0) {
-            corpoTabela.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:24px;">Nenhuma categoria cadastrada.</td></tr>';
+            corpoTabela.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:24px;">Nenhum setor cadastrado.</td></tr>';
             return;
         }
-        resultado.dados.forEach(c => {
+        resultado.dados.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><span class="tag-id">#${String(c.id_categoria).padStart(3,'0')}</span></td>
-                <td><strong>${c.nome_categoria}</strong></td>
-                <td>${c.descricao || '<span class="text-muted">—</span>'}</td>
+                <td><span class="tag-id">#${String(s.id_setor).padStart(3,'0')}</span></td>
+                <td><strong>${s.nome_setor}</strong></td>
+                <td>${s.descricao || '<span class="text-muted">—</span>'}</td>
                 <td>
                     <div class="td-actions">
-                        <button class="btn btn-edit btn-sm btn-editar" data-id="${c.id_categoria}">Editar</button>
-                        <button class="btn btn-danger btn-sm btn-excluir" data-id="${c.id_categoria}">Excluir</button>
+                        <button class="btn btn-edit btn-sm btn-editar" data-id="${s.id_setor}">Editar</button>
+                        <button class="btn btn-danger btn-sm btn-excluir" data-id="${s.id_setor}">Excluir</button>
                     </div>
                 </td>`;
             corpoTabela.appendChild(tr);
@@ -105,14 +105,14 @@ async function carregarCategorias() {
 form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const id = campoId.value;
-    const payload = { nome_categoria: campoNome.value, descricao: campoDescricao.value };
+    const payload = { nome_setor: campoNome.value, descricao: campoDescricao.value };
     try {
         const res = await fetch(id ? `${API_URL}?id=${id}` : API_URL, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
         const resultado = await res.json();
         if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao salvar.', 'erro'); return; }
-        mostrarMensagem(id ? 'Categoria atualizada.' : 'Categoria cadastrada.', 'sucesso');
+        mostrarMensagem(id ? 'Setor atualizado.' : 'Setor cadastrado.', 'sucesso');
         limparFormulario();
-        carregarCategorias();
+        carregarSetores();
     } catch (e) { mostrarMensagem('Erro de comunicação.', 'erro'); }
 });
 
@@ -121,13 +121,13 @@ corpoTabela.addEventListener('click', async (ev) => {
     if (!target) return;
     const id = target.dataset.id;
     if (target.classList.contains('btn-excluir')) {
-        if (!confirm('Confirma a exclusão desta categoria?')) return;
+        if (!confirm('Confirma a exclusão deste setor?')) return;
         try {
             const res = await fetch(`${API_URL}?id=${id}`, {method:'DELETE'});
             const resultado = await res.json();
             if (!resultado.sucesso) { mostrarMensagem(resultado.erro || 'Erro ao excluir.', 'erro'); return; }
-            mostrarMensagem('Categoria excluída.', 'sucesso');
-            carregarCategorias();
+            mostrarMensagem('Setor excluído.', 'sucesso');
+            carregarSetores();
         } catch (e) { mostrarMensagem('Erro ao excluir.', 'erro'); }
     }
     if (target.classList.contains('btn-editar')) {
@@ -135,15 +135,15 @@ corpoTabela.addEventListener('click', async (ev) => {
             const res = await fetch(`${API_URL}?id=${id}`);
             const resultado = await res.json();
             if (!resultado.sucesso) return;
-            const c = resultado.dados;
-            campoId.value = c.id_categoria;
-            campoNome.value = c.nome_categoria;
-            campoDescricao.value = c.descricao || '';
-            tituloForm.textContent = `Editar Categoria — ${c.nome_categoria}`;
+            const s = resultado.dados;
+            campoId.value = s.id_setor;
+            campoNome.value = s.nome_setor;
+            campoDescricao.value = s.descricao || '';
+            tituloForm.textContent = `Editar Setor — ${s.nome_setor}`;
             document.getElementById('btn-salvar').textContent = 'Salvar Alterações';
             btnCancelar.style.display = '';
             window.scrollTo({top:0, behavior:'smooth'});
-        } catch (e) { mostrarMensagem('Erro ao carregar categoria.', 'erro'); }
+        } catch (e) { mostrarMensagem('Erro ao carregar setor.', 'erro'); }
     }
 });
 
@@ -152,12 +152,12 @@ btnCancelar.addEventListener('click', limparFormulario);
 function limparFormulario() {
     form.reset();
     campoId.value = '';
-    tituloForm.textContent = 'Cadastrar Categoria';
-    document.getElementById('btn-salvar').textContent = 'Cadastrar Categoria';
+    tituloForm.textContent = 'Cadastrar Setor';
+    document.getElementById('btn-salvar').textContent = 'Cadastrar Setor';
     btnCancelar.style.display = 'none';
 }
 
-carregarCategorias();
+carregarSetores();
 </script>
 </body>
 </html>
