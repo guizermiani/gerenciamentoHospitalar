@@ -48,7 +48,7 @@ class ChamadoModel
         $sql = $this->selectBase() . " WHERE c.id_chamado = :id";
         $stmt = $this->conexao->prepare($sql);
         $stmt->execute(['id' => $id]);
-        $resultado = $stmt->fetch();x
+        $resultado = $stmt->fetch();
         return $resultado ?: null;
     }
 
