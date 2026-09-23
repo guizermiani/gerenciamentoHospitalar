@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Chamados</title>
+<style>
+    body { font-family: Arial, Helvetica, sans-serif; max-width: 960px; margin: 0 auto 40px; padding: 0 20px; color: #222; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #ddd; margin-bottom: 16px; }
+    header a { color: #1e5f8c; text-decoration: none; font-weight: bold; }
+    h1 { font-size: 22px; margin: 0; }
+    h2 { font-size: 17px; margin-top: 32px; }
+    form { background: #f4f6f8; padding: 16px; border-radius: 8px; }
+    label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+    input, textarea, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { margin-top: 14px; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; background: #1e5f8c; color: #fff; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
+    th { background: #eef3f7; }
+    td select { padding: 4px; }
+    .btn-atualizar { padding: 4px 10px; font-size: 12px; }
+    #mensagem { font-size: 14px; }
+    #mensagem.erro { color: #c0392b; }
+    #mensagem.sucesso { color: #2e7d32; }
+</style>
+</head>
+<body>
+    <header>
+        <h1>Chamados</h1>
+        <p id="usuario-logado"></p>
+    </header>
+
+    <p id="mensagem"></p>
+
+    <h2>Abrir novo chamado</h2>
+    <form id="form-chamado">
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" required maxlength="150">
+
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" rows="3" required></textarea>
+
+        <label for="id_setor">Setor</label>
+        <select id="id_setor" required></select>
+
+        <label for="id_categoria">Categoria</label>
+        <select id="id_categoria" required></select>
+
+        <label for="id_prioridade">Prioridade</label>
+        <select id="id_prioridade" required></select>
+
+        <button type="submit">Abrir chamado</button>
+    </form>
+
+    <h2>Chamados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Título</th><th>Setor</th><th>Prioridade</th>
+                <th>Status</th><th>Aberto por</th><th>Responsável</th><th></th>
+            </tr>
+        </thead>
+        <tbody id="corpo-tabela"></tbody>
+    </table>
+
+<script>
+const API_CHAMADOS = '../api/chamados.php';
+const API_APOIO    = '../api/dados_apoio.php';
+const API_AUTH     = '../api/auth.php';
+
+let apoio = null;          // setores, categorias, prioridades, funcionarios, status
+let usuarioLogado = null;  // { id_funcionario, nome, tipo_usuario }
+
+// Wrapper único pra todo fetch: se a sessão expirou (401), manda pro login sozinho.
+async function chamarApi(url, opcoes = {}) {
+    const resposta = await fetch(url, opcoes);
+    if (resposta.status === 401) {
+        window.location.href = 'login.html';
+        throw new Error('Não autenticado');
+    }
+    return resposta.json();
+}
+
+function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('mensagem');
+    el.textContent = texto;
+    el.className = tipo;
+}
+
+function preencherSelect(select, itens, campoValor, campoTexto) {
+    select.innerHTML = itens
+        .map(item => `<option value="${item[campoValor]}">${item[campoTexto]}</option>`)
+        .join('');
+}
+
+async function carregarSessao() {
+    const resultado = await chamarApi(API_AUTH);
+    usuarioLogado = resultado.dados;
+
+    document.getElementById('usuario-logado').innerHTML =
+        `Bem-vindo(a), ${usuarioLogado.nome} | <a href="#" id="link-sair">Sair</a>`;
+
+    document.getElementById('link-sair').addEventListener('click', async (evento) => {
+        evento.preventDefault();
+        await fetch(API_AUTH, { method: 'DELETE' });
+        window.location.href = 'login.html';
+    });
+}
+
+async function carregarDadosApoio() {
+    const resultado = await chamarApi(API_APOIO);
+    apoio = resultado.dados;
+
+    preencherSelect(document.getElementById('id_setor'), apoio.setores, 'id_setor', 'nome_setor');
+    preencherSelect(document.getElementById('id_categoria'), apoio.categorias, 'id_categoria', 'nome_categoria');
+    preencherSelect(document.getElementById('id_prioridade'), apoio.prioridades, 'id_prioridade', 'descricao');
+}
+
+async function carregarChamados() {
+    const resultado = await chamarApi(API_CHAMADOS);
+    const corpo = document.getElementById('corpo-tabela');
+    corpo.innerHTML = '';
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao carregar chamados.', 'erro');
+        return;
+    }
+
+    resultado.dados.forEach(chamado => {
+        const opcoesStatus = apoio.status.map(s =>
+            `<option value="${s.id_status}" ${s.id_status == chamado.id_status ? 'selected' : ''}>${s.descricao}</option>`
+        ).join('');
+
+        const opcoesResponsavel = apoio.funcionarios.map(f =>
+            `<option value="${f.id_funcionario}" ${f.id_funcionario == chamado.id_funcionario_responsavel ? 'selected' : ''}>${f.nome}</option>`
+        ).join('');
+
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td>${chamado.titulo}</td>
+            <td>${chamado.setor}</td>
+            <td>${chamado.prioridade}</td>
+            <td><select class="select-status">${opcoesStatus}</select></td>
+            <td>${chamado.aberto_por}</td>
+            <td><select class="select-responsavel">${opcoesResponsavel}</select></td>
+            <td><button class="btn-atualizar" data-id="${chamado.id_chamado}">Atualizar</button></td>
+        `;
+        corpo.appendChild(linha);
+    });
+}
+
+document.getElementById('form-chamado').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const corpo = JSON.stringify({
+        titulo: document.getElementById('titulo').value,
+        descricao: document.getElementById('descricao').value,
+        id_setor: document.getElementById('id_setor').value,
+        id_categoria: document.getElementById('id_categoria').value,
+        id_prioridade: document.getElementById('id_prioridade').value,
+        // Não vem mais de um <select> manual — é sempre quem está logado agora.
+        id_funcionario_abertura: usuarioLogado.id_funcionario,
+    });
+
+    const resultado = await chamarApi(API_CHAMADOS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: corpo,
+    });
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao abrir chamado.', 'erro');
+        return;
+    }
+
+    mostrarMensagem('Chamado aberto com sucesso!', 'sucesso');
+    document.getElementById('form-chamado').reset();
+    carregarChamados();
+});
+
+document.getElementById('corpo-tabela').addEventListener('click', async (evento) => {
+    if (!evento.target.classList.contains('btn-atualizar')) return;
+
+    const id = evento.target.dataset.id;
+    const linha = evento.target.closest('tr');
+    const idStatus = linha.querySelector('.select-status').value;
+    const idResponsavel = linha.querySelector('.select-responsavel').value;
+
+    const resultado = await chamarApi(`${API_CHAMADOS}?id=${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            id_status: idStatus,
+            id_funcionario_responsavel: idResponsavel,
+        }),
+    });
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao atualizar chamado.', 'erro');
+        return;
+    }
+
+    mostrarMensagem('Chamado atualizado!', 'sucesso');
+    carregarChamados();
+});
+
+(async () => {
+    await carregarSessao();      // se não tiver logado, já redireciona e para aqui
+    await carregarDadosApoio();
+    await carregarChamados();
+})();
+</script>
+</body>
+</html>
