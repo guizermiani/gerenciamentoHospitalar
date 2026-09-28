@@ -1,0 +1,62 @@
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; max-width: 1040px; margin: 0 auto; padding: 0 20px 40px; color: #222; }
+h1 { font-size: 22px; }
+h2 { font-size: 17px; margin-top: 28px; }
+a { color: #1e5f8c; }
+
+/* topo / menu */
+#topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+        padding: 12px 0; border-bottom: 2px solid #1e5f8c; margin-bottom: 20px; }
+#topo nav a { margin-right: 16px; text-decoration: none; font-weight: bold; padding-bottom: 4px; }
+#topo nav a.ativo { border-bottom: 3px solid #1e5f8c; }
+#topo .usuario { font-size: 13px; }
+
+/* formulários */
+form { background: #f4f6f8; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+input, textarea, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+.linha-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 16px; }
+button { margin-top: 14px; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; background: #1e5f8c; color: #fff; }
+button:hover { opacity: .9; }
+button.secundario { background: #888; }
+button.perigo { background: #d9534f; }
+button.alerta { background: #f0ad4e; color: #222; }
+
+/* tabelas */
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; vertical-align: top; }
+th { background: #eef3f7; }
+td.acoes button { margin: 0 4px 0 0; padding: 4px 8px; font-size: 12px; }
+.vazio { color: #777; text-align: center; }
+
+/* filtros */
+.filtros { background: #f4f6f8; padding: 12px 16px; border-radius: 8px; display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0 12px; align-items: end; }
+.filtros button { margin-top: 10px; }
+
+/* mensagens */
+#mensagem { font-size: 14px; min-height: 20px; }
+#mensagem.erro { color: #c0392b; }
+#mensagem.sucesso { color: #2e7d32; }
+
+/* selos de status/prioridade */
+.selo { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #ddd; }
+.status-1 { background: #d6e9f8; } .status-2 { background: #fff0c2; }
+.status-3 { background: #d4edda; } .status-4 { background: #e2e2e2; text-decoration: line-through; }
+.prio-3 { background: #ffe0b2; } .prio-4 { background: #f8c9c4; font-weight: bold; }
+
+/* detalhe do chamado */
+.cartao { background: #f4f6f8; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+.dados-chamado { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 16px; font-size: 14px; }
+.dados-chamado b { display: block; font-size: 12px; color: #555; }
+.descricao-chamado { white-space: pre-wrap; margin-top: 12px; }
+.linha-tempo { list-style: none; padding: 0; margin: 0; }
+.linha-tempo li { border-left: 3px solid #1e5f8c; padding: 4px 0 12px 12px; margin-left: 6px; }
+.linha-tempo .meta { font-size: 12px; color: #555; }
+.linha-tempo .texto { white-space: pre-wrap; font-size: 14px; }
+
+/* login */
+.container { max-width: 360px; margin: 80px auto; background: #f4f6f8; padding: 32px; border-radius: 8px; }
+.container h1 { font-size: 18px; text-align: center; }
+.container button { width: 100%; padding: 10px 20px; margin-top: 20px; }
+.container #mensagem { text-align: center; color: #c0392b; }
