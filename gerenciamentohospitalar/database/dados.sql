@@ -1,0 +1,3 @@
+--   admin@hospital.com      / Admin@123
+--   tecnico@hospital.com    / Tecnico@123
+--   atendente@hospital.com  / Atendente@123
