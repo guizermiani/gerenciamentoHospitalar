@@ -1,7 +1,6 @@
 <?php
 /**
  * Controller de Chamado.
- * Aplica validações e a regra de negócio de fechamento automático de chamado.
  */
 require_once __DIR__ . '/../model/ChamadoModel.php';
 

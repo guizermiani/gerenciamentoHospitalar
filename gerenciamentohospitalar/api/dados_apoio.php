@@ -1,9 +1,6 @@
 <?php
 /**
- * Endpoint de leitura only, sem Model/Controller de propósito: só serve
- * pra alimentar os <select> das telas (setor, categoria, prioridade,
- * funcionário, status). Não tem regra de negócio nenhuma, só listagem crua —
- * não compensa criar a estrutura MVC inteira pra isso.
+ * Endpoint de leitura only
  */
 
 header('Content-Type: application/json; charset=utf-8');

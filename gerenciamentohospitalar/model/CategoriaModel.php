@@ -2,7 +2,6 @@
 /**
  * Model de Categoria.
  * Responsável por toda a leitura e escrita da tabela categoria_chamado.
- * Nenhuma outra parte do sistema deve executar SQL diretamente nessa tabela.
  */
 class CategoriaModel
 {

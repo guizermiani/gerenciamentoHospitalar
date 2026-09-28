@@ -1,8 +1,6 @@
 <?php
 /**
- * Controller de Categoria.
- * Aplica validações e regras de negócio antes/depois de falar com o Model.
- * Não sabe nada sobre HTTP (isso é responsabilidade da camada API).
+ * Controller de Categoria
  */
 require_once __DIR__ . '/../model/CategoriaModel.php';
 

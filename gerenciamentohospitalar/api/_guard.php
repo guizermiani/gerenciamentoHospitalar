@@ -1,7 +1,6 @@
 <?php
 /**
  * Guarda de autenticação — inclua no topo de qualquer endpoint que exigir login.
- * Espera que config/conexao.php já tenha sido incluído antes (usa $conexao).
  */
 require_once __DIR__ . '/../controller/AuthController.php';
 

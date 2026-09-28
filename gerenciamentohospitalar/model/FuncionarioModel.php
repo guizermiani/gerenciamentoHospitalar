@@ -1,7 +1,6 @@
 <?php
 /**
- * Model de Funcionário — por enquanto só o necessário pro login.
- * Um CRUD completo de funcionário fica fora do escopo do MVP.
+ * Model de Funcionário
  */
 class FuncionarioModel
 {

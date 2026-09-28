@@ -1,9 +1,7 @@
 <?php
 /**
  * Model de Chamado.
- * Entidade central do sistema — responsável por ler e escrever a tabela `chamado`,
- * trazendo os dados relacionados (setor, categoria, prioridade, status, funcionário, paciente)
- * já com nomes legíveis, não só os ids.
+ * Entidade central do sistema — responsável por ler e escrever a tabela chamado
  */
 class ChamadoModel
 {

@@ -1,7 +1,6 @@
 <?php
 /**
  * Controller de autenticação.
- * Trata a "sessão" como um recurso: criar (login), apagar (logout), consultar (quem está logado).
  */
 require_once __DIR__ . '/../model/FuncionarioModel.php';
 
