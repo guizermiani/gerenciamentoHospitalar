@@ -102,7 +102,19 @@ class CategoriaController
             ];
         }
 
-        $this->model->excluir($id);
+        try {
+            $this->model->excluir($id);
+        } catch (PDOException $e) {
+            // 23000 = violação de chave estrangeira (categoria já usada em chamados)
+            if ($e->getCode() === '23000') {
+                return [
+                    'sucesso' => false,
+                    'erro'    => 'Esta categoria está em uso por chamados e não pode ser excluída.',
+                    'status'  => 409,
+                ];
+            }
+            throw $e;
+        }
 
         return [
             'sucesso'   => true,

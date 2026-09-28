@@ -2,15 +2,14 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Categorias de Chamado</title>
 <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <header>
-        <h1>Categorias de Chamado</h1>
-        <p id="usuario-logado"></p>
-    </header>
+    <div id="topo"></div>
 
+    <h1>Categorias de Chamado</h1>
     <p id="mensagem"></p>
 
     <form id="form-categoria">
@@ -22,8 +21,8 @@
         <label for="descricao">Descrição</label>
         <textarea id="descricao" rows="2"></textarea>
 
-        <button type="submit" id="btn-salvar">Salvar</button>
-        <button type="button" id="btn-cancelar" style="display:none">Cancelar edição</button>
+        <button type="submit">Salvar</button>
+        <button type="button" id="btn-cancelar" class="secundario" style="display:none">Cancelar edição</button>
     </form>
 
     <table>
@@ -31,9 +30,9 @@
         <tbody id="corpo-tabela"></tbody>
     </table>
 
+<script src="../js/app.js"></script>
 <script>
-const API_URL  = '../api/categorias.php';
-const API_AUTH = '../api/auth.php';
+const API_URL = '../api/categorias.php';
 
 const form           = document.getElementById('form-categoria');
 const campoId        = document.getElementById('id_categoria');
@@ -41,33 +40,6 @@ const campoNome      = document.getElementById('nome_categoria');
 const campoDescricao = document.getElementById('descricao');
 const btnCancelar    = document.getElementById('btn-cancelar');
 const corpoTabela    = document.getElementById('corpo-tabela');
-const mensagem       = document.getElementById('mensagem');
-
-async function chamarApi(url, opcoes = {}) {
-    const resposta = await fetch(url, opcoes);
-    if (resposta.status === 401) {
-        window.location.href = 'login.html';
-        throw new Error('Não autenticado');
-    }
-    return resposta.json();
-}
-
-function mostrarMensagem(texto, tipo) {
-    mensagem.textContent = texto;
-    mensagem.className = tipo;
-}
-
-async function carregarSessao() {
-    const resultado = await chamarApi(API_AUTH);
-    document.getElementById('usuario-logado').innerHTML =
-        `Bem-vindo(a), ${resultado.dados.nome} | <a href="#" id="link-sair">Sair</a>`;
-
-    document.getElementById('link-sair').addEventListener('click', async (evento) => {
-        evento.preventDefault();
-        await fetch(API_AUTH, { method: 'DELETE' });
-        window.location.href = 'login.html';
-    });
-}
 
 async function carregarCategorias() {
     const resultado = await chamarApi(API_URL);
@@ -81,13 +53,12 @@ async function carregarCategorias() {
     resultado.dados.forEach(categoria => {
         const linha = document.createElement('tr');
         linha.innerHTML = `
-            <td>${categoria.nome_categoria}</td>
-            <td>${categoria.descricao ?? ''}</td>
+            <td>${esc(categoria.nome_categoria)}</td>
+            <td>${esc(categoria.descricao ?? '')}</td>
             <td class="acoes">
-                <button class="btn-editar" data-id="${categoria.id_categoria}">Editar</button>
-                <button class="btn-excluir" data-id="${categoria.id_categoria}">Excluir</button>
-            </td>
-        `;
+                <button class="alerta btn-editar" data-id="${esc(categoria.id_categoria)}">Editar</button>
+                <button class="perigo btn-excluir" data-id="${esc(categoria.id_categoria)}">Excluir</button>
+            </td>`;
         corpoTabela.appendChild(linha);
     });
 }
@@ -96,18 +67,9 @@ form.addEventListener('submit', async (evento) => {
     evento.preventDefault();
 
     const id = campoId.value;
-    const corpo = JSON.stringify({
+    const resultado = await enviarJson(id ? `${API_URL}?id=${id}` : API_URL, id ? 'PUT' : 'POST', {
         nome_categoria: campoNome.value,
         descricao: campoDescricao.value,
-    });
-
-    const url = id ? `${API_URL}?id=${id}` : API_URL;
-    const metodo = id ? 'PUT' : 'POST';
-
-    const resultado = await chamarApi(url, {
-        method: metodo,
-        headers: { 'Content-Type': 'application/json' },
-        body: corpo,
     });
 
     if (!resultado.sucesso) {
@@ -128,7 +90,6 @@ corpoTabela.addEventListener('click', async (evento) => {
         if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
 
         const resultado = await chamarApi(`${API_URL}?id=${id}`, { method: 'DELETE' });
-
         if (!resultado.sucesso) {
             mostrarMensagem(resultado.erro ?? 'Erro ao excluir categoria.', 'erro');
             return;
@@ -157,7 +118,7 @@ function limparFormulario() {
 }
 
 (async () => {
-    await carregarSessao();
+    await iniciarPagina(['admin']);
     await carregarCategorias();
 })();
 </script>

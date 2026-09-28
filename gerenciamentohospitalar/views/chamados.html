@@ -2,15 +2,14 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chamados</title>
 <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <header>
-        <h1>Chamados</h1>
-        <p id="usuario-logado"></p>
-    </header>
+    <div id="topo"></div>
 
+    <h1>Chamados</h1>
     <p id="mensagem"></p>
 
     <h2>Abrir novo chamado</h2>
@@ -21,172 +20,172 @@
         <label for="descricao">Descrição</label>
         <textarea id="descricao" rows="3" required></textarea>
 
-        <label for="id_setor">Setor</label>
-        <select id="id_setor" required></select>
-
-        <label for="id_categoria">Categoria</label>
-        <select id="id_categoria" required></select>
-
-        <label for="id_prioridade">Prioridade</label>
-        <select id="id_prioridade" required></select>
+        <div class="linha-form">
+            <div>
+                <label for="id_setor">Setor</label>
+                <select id="id_setor" required></select>
+            </div>
+            <div>
+                <label for="id_categoria">Categoria</label>
+                <select id="id_categoria" required></select>
+            </div>
+            <div>
+                <label for="id_prioridade">Prioridade</label>
+                <select id="id_prioridade" required></select>
+            </div>
+            <div>
+                <label for="id_paciente">Paciente (opcional)</label>
+                <select id="id_paciente"></select>
+            </div>
+        </div>
 
         <button type="submit">Abrir chamado</button>
     </form>
 
-    <h2>Chamados</h2>
+    <h2 id="titulo-lista">Consulta de chamados</h2>
+    <form id="form-filtros" class="filtros">
+        <div>
+            <label for="f-busca">Busca (título, descrição ou nº)</label>
+            <input type="text" id="f-busca">
+        </div>
+        <div>
+            <label for="f-status">Status</label>
+            <select id="f-status"></select>
+        </div>
+        <div>
+            <label for="f-prioridade">Prioridade</label>
+            <select id="f-prioridade"></select>
+        </div>
+        <div>
+            <label for="f-setor">Setor</label>
+            <select id="f-setor"></select>
+        </div>
+        <div id="bloco-meus" style="display:none">
+            <label for="f-meus">Responsável</label>
+            <select id="f-meus">
+                <option value="">Todos</option>
+                <option value="1">Somente os meus</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Filtrar</button>
+            <button type="button" id="btn-limpar" class="secundario">Limpar</button>
+        </div>
+    </form>
+
     <table>
         <thead>
             <tr>
-                <th>Título</th><th>Setor</th><th>Prioridade</th>
-                <th>Status</th><th>Aberto por</th><th>Responsável</th><th></th>
+                <th>Nº</th><th>Título</th><th>Setor</th><th>Prioridade</th><th>Status</th>
+                <th>Aberto por</th><th>Responsável</th><th>Abertura</th><th></th>
             </tr>
         </thead>
         <tbody id="corpo-tabela"></tbody>
     </table>
 
+<script src="../js/app.js"></script>
 <script>
 const API_CHAMADOS = '../api/chamados.php';
 const API_APOIO    = '../api/dados_apoio.php';
-const API_AUTH     = '../api/auth.php';
 
-let apoio = null;          // setores, categorias, prioridades, funcionarios, status
-let usuarioLogado = null;  // { id_funcionario, nome, tipo_usuario }
-
-// Wrapper único pra todo fetch: se a sessão expirou (401), manda pro login sozinho.
-async function chamarApi(url, opcoes = {}) {
-    const resposta = await fetch(url, opcoes);
-    if (resposta.status === 401) {
-        window.location.href = 'login.html';
-        throw new Error('Não autenticado');
-    }
-    return resposta.json();
-}
-
-function mostrarMensagem(texto, tipo) {
-    const el = document.getElementById('mensagem');
-    el.textContent = texto;
-    el.className = tipo;
-}
-
-function preencherSelect(select, itens, campoValor, campoTexto) {
-    select.innerHTML = itens
-        .map(item => `<option value="${item[campoValor]}">${item[campoTexto]}</option>`)
-        .join('');
-}
-
-async function carregarSessao() {
-    const resultado = await chamarApi(API_AUTH);
-    usuarioLogado = resultado.dados;
-
-    document.getElementById('usuario-logado').innerHTML =
-        `Bem-vindo(a), ${usuarioLogado.nome} | <a href="#" id="link-sair">Sair</a>`;
-
-    document.getElementById('link-sair').addEventListener('click', async (evento) => {
-        evento.preventDefault();
-        await fetch(API_AUTH, { method: 'DELETE' });
-        window.location.href = 'login.html';
-    });
-}
+let usuarioLogado = null;
 
 async function carregarDadosApoio() {
-    const resultado = await chamarApi(API_APOIO);
-    apoio = resultado.dados;
+    const r = await chamarApi(API_APOIO);
+    const a = r.dados;
 
-    preencherSelect(document.getElementById('id_setor'), apoio.setores, 'id_setor', 'nome_setor');
-    preencherSelect(document.getElementById('id_categoria'), apoio.categorias, 'id_categoria', 'nome_categoria');
-    preencherSelect(document.getElementById('id_prioridade'), apoio.prioridades, 'id_prioridade', 'descricao');
+    preencherSelect(document.getElementById('id_setor'), a.setores, 'id_setor', 'nome_setor');
+    preencherSelect(document.getElementById('id_categoria'), a.categorias, 'id_categoria', 'nome_categoria');
+    preencherSelect(document.getElementById('id_prioridade'), a.prioridades, 'id_prioridade', 'descricao');
+    preencherSelect(document.getElementById('id_paciente'), a.pacientes, 'id_paciente', 'nome', 'Nenhum');
+
+    preencherSelect(document.getElementById('f-status'), a.status, 'id_status', 'descricao', 'Todos');
+    preencherSelect(document.getElementById('f-prioridade'), a.prioridades, 'id_prioridade', 'descricao', 'Todas');
+    preencherSelect(document.getElementById('f-setor'), a.setores, 'id_setor', 'nome_setor', 'Todos');
+}
+
+function filtrosAtuais() {
+    const p = new URLSearchParams();
+    const campos = {
+        busca: 'f-busca', id_status: 'f-status', id_prioridade: 'f-prioridade',
+        id_setor: 'f-setor', meus: 'f-meus',
+    };
+    for (const [nome, idCampo] of Object.entries(campos)) {
+        const v = document.getElementById(idCampo).value.trim();
+        if (v) p.set(nome, v);
+    }
+    return p.toString();
 }
 
 async function carregarChamados() {
-    const resultado = await chamarApi(API_CHAMADOS);
+    const qs = filtrosAtuais();
+    const r = await chamarApi(API_CHAMADOS + (qs ? '?' + qs : ''));
     const corpo = document.getElementById('corpo-tabela');
-    corpo.innerHTML = '';
 
-    if (!resultado.sucesso) {
-        mostrarMensagem(resultado.erro ?? 'Erro ao carregar chamados.', 'erro');
+    if (!r.sucesso) {
+        mostrarMensagem(r.erro ?? 'Erro ao carregar chamados.', 'erro');
         return;
     }
 
-    resultado.dados.forEach(chamado => {
-        const opcoesStatus = apoio.status.map(s =>
-            `<option value="${s.id_status}" ${s.id_status == chamado.id_status ? 'selected' : ''}>${s.descricao}</option>`
-        ).join('');
+    if (r.dados.length === 0) {
+        corpo.innerHTML = '<tr><td colspan="9" class="vazio">Nenhum chamado encontrado.</td></tr>';
+        return;
+    }
 
-        const opcoesResponsavel = apoio.funcionarios.map(f =>
-            `<option value="${f.id_funcionario}" ${f.id_funcionario == chamado.id_funcionario_responsavel ? 'selected' : ''}>${f.nome}</option>`
-        ).join('');
-
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-            <td>${chamado.titulo}</td>
-            <td>${chamado.setor}</td>
-            <td>${chamado.prioridade}</td>
-            <td><select class="select-status">${opcoesStatus}</select></td>
-            <td>${chamado.aberto_por}</td>
-            <td><select class="select-responsavel">${opcoesResponsavel}</select></td>
-            <td><button class="btn-atualizar" data-id="${chamado.id_chamado}">Atualizar</button></td>
-        `;
-        corpo.appendChild(linha);
-    });
+    corpo.innerHTML = r.dados.map(c => `
+        <tr>
+            <td>#${esc(c.id_chamado)}</td>
+            <td>${esc(c.titulo)}</td>
+            <td>${esc(c.setor)}</td>
+            <td><span class="selo prio-${esc(c.id_prioridade)}">${esc(c.prioridade)}</span></td>
+            <td><span class="selo status-${esc(c.id_status)}">${esc(c.status)}</span></td>
+            <td>${esc(c.aberto_por)}</td>
+            <td>${esc(c.responsavel ?? '— sem responsável —')}</td>
+            <td>${esc(formatarData(c.data_abertura))}</td>
+            <td><a href="chamado.html?id=${esc(c.id_chamado)}">Abrir</a></td>
+        </tr>`).join('');
 }
 
 document.getElementById('form-chamado').addEventListener('submit', async (evento) => {
     evento.preventDefault();
 
-    const corpo = JSON.stringify({
+    const r = await enviarJson(API_CHAMADOS, 'POST', {
         titulo: document.getElementById('titulo').value,
         descricao: document.getElementById('descricao').value,
         id_setor: document.getElementById('id_setor').value,
         id_categoria: document.getElementById('id_categoria').value,
         id_prioridade: document.getElementById('id_prioridade').value,
-        // Não vem mais de um <select> manual — é sempre quem está logado agora.
-        id_funcionario_abertura: usuarioLogado.id_funcionario,
+        id_paciente: document.getElementById('id_paciente').value || null,
     });
 
-    const resultado = await chamarApi(API_CHAMADOS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: corpo,
-    });
-
-    if (!resultado.sucesso) {
-        mostrarMensagem(resultado.erro ?? 'Erro ao abrir chamado.', 'erro');
+    if (!r.sucesso) {
+        mostrarMensagem(r.erro ?? 'Erro ao abrir chamado.', 'erro');
         return;
     }
 
-    mostrarMensagem('Chamado aberto com sucesso!', 'sucesso');
+    mostrarMensagem(`Chamado #${r.dados.id_chamado} aberto com sucesso!`, 'sucesso');
     document.getElementById('form-chamado').reset();
     carregarChamados();
 });
 
-document.getElementById('corpo-tabela').addEventListener('click', async (evento) => {
-    if (!evento.target.classList.contains('btn-atualizar')) return;
+document.getElementById('form-filtros').addEventListener('submit', (e) => {
+    e.preventDefault();
+    carregarChamados();
+});
 
-    const id = evento.target.dataset.id;
-    const linha = evento.target.closest('tr');
-    const idStatus = linha.querySelector('.select-status').value;
-    const idResponsavel = linha.querySelector('.select-responsavel').value;
-
-    const resultado = await chamarApi(`${API_CHAMADOS}?id=${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            id_status: idStatus,
-            id_funcionario_responsavel: idResponsavel,
-        }),
-    });
-
-    if (!resultado.sucesso) {
-        mostrarMensagem(resultado.erro ?? 'Erro ao atualizar chamado.', 'erro');
-        return;
-    }
-
-    mostrarMensagem('Chamado atualizado!', 'sucesso');
+document.getElementById('btn-limpar').addEventListener('click', () => {
+    document.getElementById('form-filtros').reset();
     carregarChamados();
 });
 
 (async () => {
-    await carregarSessao();      // se não tiver logado, já redireciona e para aqui
+    usuarioLogado = await iniciarPagina();
+    if (usuarioLogado.tipo_usuario === 'atendente') {
+        document.getElementById('titulo-lista').textContent = 'Meus chamados';
+    }
+    if (usuarioLogado.tipo_usuario !== 'atendente') {
+        document.getElementById('bloco-meus').style.display = 'block';
+    }
     await carregarDadosApoio();
     await carregarChamados();
 })();

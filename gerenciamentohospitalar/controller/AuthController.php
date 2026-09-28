@@ -31,14 +31,17 @@ class AuthController
             return ['sucesso' => false, 'erro' => 'Email ou senha incorretos.', 'status' => 401];
         }
 
-        $_SESSION['id_funcionario'] = $funcionario['id_funcionario'];
+        // Evita fixação de sessão
+        session_regenerate_id(true);
+
+        $_SESSION['id_funcionario'] = (int) $funcionario['id_funcionario'];
         $_SESSION['nome']           = $funcionario['nome'];
         $_SESSION['tipo_usuario']   = $funcionario['tipo_usuario'];
 
         return [
             'sucesso' => true,
             'dados'   => [
-                'id_funcionario' => $funcionario['id_funcionario'],
+                'id_funcionario' => (int) $funcionario['id_funcionario'],
                 'nome'           => $funcionario['nome'],
                 'tipo_usuario'   => $funcionario['tipo_usuario'],
             ],
@@ -48,7 +51,9 @@ class AuthController
     public function logout(): array
     {
         $_SESSION = [];
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         return ['sucesso' => true, 'mensagem' => 'Sessão encerrada.'];
     }
 
@@ -61,7 +66,7 @@ class AuthController
         return [
             'sucesso' => true,
             'dados'   => [
-                'id_funcionario' => $_SESSION['id_funcionario'],
+                'id_funcionario' => (int) $_SESSION['id_funcionario'],
                 'nome'           => $_SESSION['nome'],
                 'tipo_usuario'   => $_SESSION['tipo_usuario'],
             ],

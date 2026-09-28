@@ -2,6 +2,7 @@
 /**
  * API REST de Categoria.
  * Endpoint único que roteia pelo verbo HTTP (GET, POST, PUT, DELETE).
+ * Leitura: qualquer usuário logado. Escrita (POST/PUT/DELETE): somente administrador.
  *
  *   GET    /api/categorias.php           -> lista todas
  *   GET    /api/categorias.php?id=1      -> busca uma
@@ -30,11 +31,13 @@ try {
             break;
 
         case 'POST':
+            exigirPerfil(['admin']);
             $dados = json_decode(file_get_contents('php://input'), true) ?? [];
             $resultado = $controller->criar($dados);
             break;
 
         case 'PUT':
+            exigirPerfil(['admin']);
             if ($id === null) {
                 $resultado = ['sucesso' => false, 'erro' => 'Informe o id da categoria (?id=).', 'status' => 400];
                 break;
@@ -44,6 +47,7 @@ try {
             break;
 
         case 'DELETE':
+            exigirPerfil(['admin']);
             if ($id === null) {
                 $resultado = ['sucesso' => false, 'erro' => 'Informe o id da categoria (?id=).', 'status' => 400];
                 break;
@@ -55,7 +59,7 @@ try {
             $resultado = ['sucesso' => false, 'erro' => 'Método não permitido.', 'status' => 405];
             break;
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     $resultado = ['sucesso' => false, 'erro' => 'Erro interno: ' . $e->getMessage(), 'status' => 500];
 }
 
