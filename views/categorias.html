@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Categorias de Chamado</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div id="topo"></div>
+
+    <h1>Categorias de Chamado</h1>
+    <p id="mensagem"></p>
+
+    <form id="form-categoria">
+        <input type="hidden" id="id_categoria">
+
+        <label for="nome_categoria">Nome</label>
+        <input type="text" id="nome_categoria" required maxlength="100">
+
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" rows="2"></textarea>
+
+        <button type="submit">Salvar</button>
+        <button type="button" id="btn-cancelar" class="secundario" style="display:none">Cancelar edição</button>
+    </form>
+
+    <table>
+        <thead><tr><th>Nome</th><th>Descrição</th><th>Ações</th></tr></thead>
+        <tbody id="corpo-tabela"></tbody>
+    </table>
+
+<script src="../js/app.js"></script>
+<script>
+const API_URL = '../api/categorias.php';
+
+const form           = document.getElementById('form-categoria');
+const campoId        = document.getElementById('id_categoria');
+const campoNome      = document.getElementById('nome_categoria');
+const campoDescricao = document.getElementById('descricao');
+const btnCancelar    = document.getElementById('btn-cancelar');
+const corpoTabela    = document.getElementById('corpo-tabela');
+
+async function carregarCategorias() {
+    const resultado = await chamarApi(API_URL);
+    corpoTabela.innerHTML = '';
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao carregar categorias.', 'erro');
+        return;
+    }
+
+    resultado.dados.forEach(categoria => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+            <td>${esc(categoria.nome_categoria)}</td>
+            <td>${esc(categoria.descricao ?? '')}</td>
+            <td class="acoes">
+                <button class="alerta btn-editar" data-id="${esc(categoria.id_categoria)}">Editar</button>
+                <button class="perigo btn-excluir" data-id="${esc(categoria.id_categoria)}">Excluir</button>
+            </td>`;
+        corpoTabela.appendChild(linha);
+    });
+}
+
+form.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const id = campoId.value;
+    const resultado = await enviarJson(id ? `${API_URL}?id=${id}` : API_URL, id ? 'PUT' : 'POST', {
+        nome_categoria: campoNome.value,
+        descricao: campoDescricao.value,
+    });
+
+    if (!resultado.sucesso) {
+        mostrarMensagem(resultado.erro ?? 'Erro ao salvar categoria.', 'erro');
+        return;
+    }
+
+    mostrarMensagem(id ? 'Categoria atualizada!' : 'Categoria criada!', 'sucesso');
+    limparFormulario();
+    carregarCategorias();
+});
+
+corpoTabela.addEventListener('click', async (evento) => {
+    const id = evento.target.dataset.id;
+    if (!id) return;
+
+    if (evento.target.classList.contains('btn-excluir')) {
+        if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+
+        const resultado = await chamarApi(`${API_URL}?id=${id}`, { method: 'DELETE' });
+        if (!resultado.sucesso) {
+            mostrarMensagem(resultado.erro ?? 'Erro ao excluir categoria.', 'erro');
+            return;
+        }
+        mostrarMensagem('Categoria excluída.', 'sucesso');
+        carregarCategorias();
+    }
+
+    if (evento.target.classList.contains('btn-editar')) {
+        const resultado = await chamarApi(`${API_URL}?id=${id}`);
+        if (!resultado.sucesso) return;
+
+        campoId.value = resultado.dados.id_categoria;
+        campoNome.value = resultado.dados.nome_categoria;
+        campoDescricao.value = resultado.dados.descricao ?? '';
+        btnCancelar.style.display = 'inline-block';
+    }
+});
+
+btnCancelar.addEventListener('click', limparFormulario);
+
+function limparFormulario() {
+    form.reset();
+    campoId.value = '';
+    btnCancelar.style.display = 'none';
+}
+
+(async () => {
+    await iniciarPagina(['admin']);
+    await carregarCategorias();
+})();
+</script>
+</body>
+</html>
