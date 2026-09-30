@@ -1,8 +1,6 @@
 <?php
 /**
  * API REST de Categoria.
- * Endpoint único que roteia pelo verbo HTTP (GET, POST, PUT, DELETE).
- * Leitura: qualquer usuário logado. Escrita (POST/PUT/DELETE): somente administrador.
  *
  *   GET    /api/categorias.php           -> lista todas
  *   GET    /api/categorias.php?id=1      -> busca uma

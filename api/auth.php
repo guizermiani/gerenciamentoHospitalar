@@ -1,9 +1,6 @@
 <?php
 /**
  * API REST de autenticação.
- *   GET    /api/auth.php  -> quem está logado agora (401 se ninguém)
- *   POST   /api/auth.php  -> login (corpo: {"email":..., "senha":...})
- *   DELETE /api/auth.php  -> logout
  */
 
 header('Content-Type: application/json; charset=utf-8');

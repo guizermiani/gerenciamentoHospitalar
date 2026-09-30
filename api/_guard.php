@@ -1,8 +1,6 @@
 <?php
 /**
  * Guarda de autenticação e autorização.
- * Inclua no topo de qualquer endpoint que exigir login.
- * Depois use exigirPerfil(['admin']) para restringir por tipo de usuário.
  */
 require_once __DIR__ . '/../controller/AuthController.php';
 

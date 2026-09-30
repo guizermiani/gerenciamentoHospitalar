@@ -1,9 +1,6 @@
 <?php
 /**
  * API REST de Andamentos (histórico do chamado).
- *
- *   GET  /api/andamentos.php?id_chamado=1  -> lista os andamentos do chamado
- *   POST /api/andamentos.php?id_chamado=1  -> registra um andamento (corpo: {"comentario": "..."})
  */
 
 require_once __DIR__ . '/../config/conexao.php';
