@@ -20,7 +20,7 @@ try {
         $resultado = $detalhe['sucesso']
             ? ['sucesso' => true, 'dados' => $detalhe['dados']['andamentos']]
             : $detalhe;
-    } elseif ($metodo === 'POST') {
+    } elseif ($metodo === 'POST') { 
         $dados = json_decode(file_get_contents('php://input'), true) ?? [];
         $resultado = $controller->registrarAndamento($idChamado, $dados);
     } else {
