@@ -1,12 +1,6 @@
 <?php
 /**
  * API REST de Chamado.
- *
- *   GET  /api/chamados.php                 -> lista (filtros: id_status, id_prioridade, id_setor,
- *                                             id_categoria, busca, meus=1). Atendente só vê os seus.
- *   GET  /api/chamados.php?id=1            -> detalhe + andamentos + ações permitidas
- *   POST /api/chamados.php                 -> abre um novo chamado (JSON)
- *   PUT  /api/chamados.php?id=1            -> muda status/responsável e registra no histórico (JSON)
  */
 
 require_once __DIR__ . '/../config/conexao.php';
